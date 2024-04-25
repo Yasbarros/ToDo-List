@@ -8,9 +8,22 @@ use App\Models\Event;
 class EventController extends Controller
 {
     public function index(){
-        $events = Event::all();
 
-        return view('welcome',['events' => $events]);
+        $search = request('search');
+
+        if($search){
+            $events = Event::where([
+                ['title', 'like', '%'.$search.'%']
+            ])->get();
+        }else{
+            $events = Event::all();
+        }
+
+        $count = count($events);
+
+        
+
+        return view('welcome',['events' => $events, 'search' => $search, 'count' => $count]);
 
     }
 
@@ -41,10 +54,13 @@ class EventController extends Controller
         return view('events.edit', ['event' => $event]);
     }
 
-    public function update(Request $request){
-        Event::findOrFail($request->id)->update($request->all());
-        return redirect('/')->with('mgs', 'Evento editado com sucesso!');
-
-
+    public function update(Request $request, $id){
+        $event = Event::findOrFail($id);
+        $event->title = $request->title;
+        $event->city = $request->city;
+        $event->private = $request->private;
+        $event->description = $request->description;
+        $event->save();
+        return redirect('/')->with('msg', 'Evento editado com sucesso!');
     }
 }
